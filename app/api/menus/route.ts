@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { menuRepository } from "@/lib/menuRepository";
+import { publishMenu } from "@/lib/fhcdn-publish";
 import { ExtractedMenuSchema } from "@/lib/validation";
 
 export async function GET() {
@@ -25,7 +26,8 @@ export async function POST(request: Request) {
     }
 
     const menu = await menuRepository.create(result.data);
-    return NextResponse.json(menu, { status: 201 });
+    const publishResult = await publishMenu(result.data);
+    return NextResponse.json({ ...menu, publishResult }, { status: 201 });
   } catch (error) {
     console.error("POST /api/menus error:", error);
     return NextResponse.json({ error: "Failed to create menu" }, { status: 500 });
