@@ -212,10 +212,12 @@ export function parseMenuText(
   // Flush any remaining pending item
   flushPendingItem();
 
-  // Remove empty categories
-  const nonEmpty = categories.filter(
-    (c) => c.items.length > 0 && c.name !== "Menu Items"
-  );
+  // Remove empty categories, then filter out the default placeholder name if real categories exist
+  const withItems = categories.filter((c) => c.items.length > 0);
+  const nonEmpty =
+    withItems.length > 1
+      ? withItems.filter((c) => c.name !== "Menu Items")
+      : withItems;
 
   return {
     categories: nonEmpty.length > 0 ? nonEmpty : categories,

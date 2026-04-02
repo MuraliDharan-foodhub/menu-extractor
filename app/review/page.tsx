@@ -134,8 +134,8 @@ export default function ReviewPage() {
               <AlertTitle>Low-Confidence Items</AlertTitle>
               <AlertDescription>
                 {lowConfidenceItems.length} item
-                {lowConfidenceItems.length !== 1 ? "s" : ""} ha
-                {lowConfidenceItems.length !== 1 ? "ve" : "s"} low confidence
+                {lowConfidenceItems.length !== 1 ? "s" : ""}{" "}
+                {lowConfidenceItems.length !== 1 ? "have" : "has"} low confidence
                 scores and may need manual review:
                 <ul className="mt-2 list-disc pl-5 text-xs space-y-0.5">
                   {lowConfidenceItems.slice(0, 5).map((item) => (
