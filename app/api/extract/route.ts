@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { extractTextFromImage } from "@/lib/google-vision";
+import { extractTextWithTesseract } from "@/lib/tesseract-ocr";
 import { parseMenuText } from "@/lib/menuParser";
+
+/** Supported OCR engine values for the OCR_ENGINE env variable. */
+type OcrEngine = "google" | "tesseract";
+
+function getOcrEngine(): OcrEngine {
+  const val = (process.env.OCR_ENGINE ?? "google").toLowerCase();
+  if (val === "tesseract") return "tesseract";
+  return "google";
+}
 
 export async function POST(request: Request) {
   try {
@@ -28,7 +38,11 @@ export async function POST(request: Request) {
     const buffer = await file.arrayBuffer();
     const base64 = Buffer.from(buffer).toString("base64");
 
-    const { rawText, confidence } = await extractTextFromImage(base64);
+    const engine = getOcrEngine();
+    const { rawText, confidence } =
+      engine === "tesseract"
+        ? await extractTextWithTesseract(base64)
+        : await extractTextFromImage(base64);
 
     if (!rawText) {
       return NextResponse.json(
