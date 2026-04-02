@@ -3,12 +3,13 @@ import { menuRepository } from "@/lib/menuRepository";
 import { ExtractedMenuSchema } from "@/lib/validation";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function GET(_request: Request, { params }: RouteParams) {
   try {
-    const menu = await menuRepository.findById(params.id);
+    const { id } = await params;
+    const menu = await menuRepository.findById(id);
     if (!menu) {
       return NextResponse.json({ error: "Menu not found" }, { status: 404 });
     }
@@ -21,6 +22,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
 export async function PUT(request: Request, { params }: RouteParams) {
   try {
+    const { id } = await params;
     const body: unknown = await request.json();
     const result = ExtractedMenuSchema.partial().safeParse(body);
 
@@ -31,7 +33,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       );
     }
 
-    const menu = await menuRepository.update(params.id, result.data);
+    const menu = await menuRepository.update(id, result.data);
     if (!menu) {
       return NextResponse.json({ error: "Menu not found" }, { status: 404 });
     }
@@ -44,7 +46,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
 export async function DELETE(_request: Request, { params }: RouteParams) {
   try {
-    const deleted = await menuRepository.delete(params.id);
+    const { id } = await params;
+    const deleted = await menuRepository.delete(id);
     if (!deleted) {
       return NextResponse.json({ error: "Menu not found" }, { status: 404 });
     }
