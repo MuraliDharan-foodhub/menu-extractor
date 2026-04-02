@@ -1,36 +1,16 @@
-const GOOGLE_OAUTH2_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const VISION_API_URL = "https://vision.googleapis.com/v1/images:annotate";
-
-export async function refreshAccessToken(): Promise<string> {
-  const response = await fetch(GOOGLE_OAUTH2_TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: process.env.GOOGLE_CLIENT_ID!,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-      refresh_token: process.env.GOOGLE_REFRESH_TOKEN!,
-      grant_type: "refresh_token",
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Token refresh failed: ${error}`);
-  }
-
-  const data = (await response.json()) as { access_token: string };
-  return data.access_token;
-}
 
 export async function extractTextFromImage(
   imageBase64: string
 ): Promise<{ rawText: string; confidence: number }> {
-  const accessToken = await refreshAccessToken();
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    throw new Error("GOOGLE_API_KEY environment variable is not set");
+  }
 
-  const response = await fetch(VISION_API_URL, {
+  const response = await fetch(`${VISION_API_URL}?key=${apiKey}`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
