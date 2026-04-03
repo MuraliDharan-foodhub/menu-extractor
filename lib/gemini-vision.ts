@@ -145,8 +145,9 @@ async function callGeminiApi(
 
   try {
     return JSON.parse(jsonStr) as GeminiMenuResponse;
-  } catch {
-    throw new Error(`Failed to parse Gemini response as JSON: ${jsonStr.slice(0, 200)}`);
+  } catch (parseError) {
+    const errorMsg = parseError instanceof Error ? parseError.message : String(parseError);
+    throw new Error(`Failed to parse Gemini response as JSON: ${errorMsg}. Response preview: ${jsonStr.slice(0, 500)}`);
   }
 }
 
