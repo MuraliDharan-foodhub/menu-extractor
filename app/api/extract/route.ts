@@ -1,14 +1,21 @@
 import { NextResponse } from "next/server";
 import { extractTextFromImage } from "@/lib/google-vision";
 import { extractTextWithTesseract } from "@/lib/tesseract-ocr";
+import { extractMenuWithGemini } from "@/lib/gemini-vision";
 import { parseMenuText } from "@/lib/menuParser";
 
-/** Supported OCR engine values for the OCR_ENGINE env variable. */
-type OcrEngine = "google" | "tesseract";
+/**
+ * Supported OCR engine values for the OCR_ENGINE env variable.
+ * - "google": Google Cloud Vision API (text extraction + rule-based parsing)
+ * - "tesseract": Tesseract.js (local OCR + rule-based parsing)
+ * - "gemini": Google Gemini API (AI-powered structured extraction)
+ */
+type OcrEngine = "google" | "tesseract" | "gemini";
 
 function getOcrEngine(): OcrEngine {
   const val = (process.env.OCR_ENGINE ?? "google").toLowerCase();
   if (val === "tesseract") return "tesseract";
+  if (val === "gemini") return "gemini";
   return "google";
 }
 
@@ -39,6 +46,20 @@ export async function POST(request: Request) {
     const base64 = Buffer.from(buffer).toString("base64");
 
     const engine = getOcrEngine();
+
+    // Gemini uses direct AI extraction (no separate OCR + parsing steps)
+    if (engine === "gemini") {
+      const menu = await extractMenuWithGemini(base64, file.type);
+      if (menu.categories.length === 0) {
+        return NextResponse.json(
+          { error: "No menu items found in the image. Please try a clearer menu photo." },
+          { status: 422 }
+        );
+      }
+      return NextResponse.json(menu);
+    }
+
+    // Google Vision or Tesseract: OCR + rule-based parsing
     const { rawText, confidence } =
       engine === "tesseract"
         ? await extractTextWithTesseract(base64)

@@ -22,7 +22,8 @@ import { AddItemDialog } from "@/components/AddItemDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { isUnknownCategory } from "@/lib/gemini-vision";
+import { ChevronDown, ChevronRight, Plus, Trash2, AlertTriangle } from "lucide-react";
 import type { MenuCategory, MenuItem } from "@/types/menu";
 
 interface CategorySectionProps {
@@ -56,8 +57,13 @@ export function CategorySection({ category, currency }: CategorySectionProps) {
     addItem(category.id, item);
   }
 
+  const isUnknown = isUnknownCategory(category.name);
+
   return (
-    <div className="rounded-lg border bg-card shadow-sm">
+    <div className={cn(
+      "rounded-lg border bg-card shadow-sm",
+      isUnknown && "border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20"
+    )}>
       <div className="flex items-center gap-2 p-3 border-b">
         <button
           type="button"
@@ -71,6 +77,12 @@ export function CategorySection({ category, currency }: CategorySectionProps) {
             <ChevronDown className="h-4 w-4" />
           )}
         </button>
+
+        {isUnknown && (
+          <span title="Items need category assignment">
+            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+          </span>
+        )}
 
         <Input
           value={category.name}
